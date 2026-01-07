@@ -1,0 +1,8 @@
+{
+  "name": "Shadow Link - Private Messenger",
+  "description": "A privacy-focused messenger that generates unique anonymous IDs, featuring self-destructing messages, E2EE simulation, and a secure AI relay.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ]
+}

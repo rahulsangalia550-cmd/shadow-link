@@ -4,7 +4,7 @@ import { UserProfile, Contact } from './types';
 import { getOrCreateIdentity, clearIdentity, updateIdentity } from './services/identityService';
 import ChatWindow from './components/ChatWindow';
 import SettingsModal from './components/SettingsModal';
-import { Menu, X } from 'lucide-react';
+import { Menu, X, Plus, UserPlus } from 'lucide-react';
 
 const INITIAL_CONTACTS: Contact[] = [
   { id: 'SHDW-K9X2-P1Q7', name: 'SafeNode Alpha', status: 'secure', avatarSeed: 'alpha', isAI: true, lastMessage: 'Connection ready.' },
@@ -20,6 +20,8 @@ const App: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [inviteCopied, setInviteCopied] = useState(false);
+  const [showAddContact, setShowAddContact] = useState(false);
+  const [newContactId, setNewContactId] = useState('');
 
   useEffect(() => {
     const identity = getOrCreateIdentity();
@@ -62,6 +64,27 @@ const App: React.FC = () => {
     if (window.innerWidth < 1024) {
       setIsSidebarOpen(false);
     }
+  };
+
+  const handleAddContact = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newContactId.trim()) return;
+
+    // Simulate looking up a contact. In this demo, we create a new "AI" contact with that name/ID.
+    const newContact: Contact = {
+      id: `SHDW-${Math.random().toString(36).substring(2, 6).toUpperCase()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`,
+      name: newContactId,
+      status: 'secure',
+      avatarSeed: newContactId,
+      isAI: true,
+      lastMessage: 'Secure channel established.'
+    };
+
+    setContacts(prev => [newContact, ...prev]);
+    setSelectedContact(newContact);
+    setNewContactId('');
+    setShowAddContact(false);
+    if (window.innerWidth < 1024) setIsSidebarOpen(false);
   };
 
   const filteredContacts = contacts.filter(c => 
@@ -134,18 +157,57 @@ const App: React.FC = () => {
               </svg>
             </button>
           </div>
-          <div className="relative group">
-            <input 
-              type="text" 
-              placeholder="Search ID or Alias..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-[#121212] border border-white/5 rounded-lg px-4 py-2.5 text-xs text-neutral-300 placeholder-neutral-600 focus:outline-none focus:border-emerald-500/30 focus:bg-[#151515] focus:shadow-[0_0_10px_rgba(16,185,129,0.1)] transition-all"
-            />
-            <div className="absolute right-3 top-2.5 text-neutral-600 group-focus-within:text-emerald-500 transition-colors">
-               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" strokeWidth={2} /></svg>
+
+          <div className="flex gap-2">
+            <div className="relative group flex-1">
+              <input 
+                type="text" 
+                placeholder="Search ID or Alias..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full bg-[#121212] border border-white/5 rounded-lg px-4 py-2.5 text-xs text-neutral-300 placeholder-neutral-600 focus:outline-none focus:border-emerald-500/30 focus:bg-[#151515] focus:shadow-[0_0_10px_rgba(16,185,129,0.1)] transition-all"
+              />
+              <div className="absolute right-3 top-2.5 text-neutral-600 group-focus-within:text-emerald-500 transition-colors">
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" strokeWidth={2} /></svg>
+              </div>
             </div>
+            <button 
+              onClick={() => setShowAddContact(!showAddContact)}
+              className={`p-2.5 rounded-lg border transition-all ${showAddContact ? 'bg-emerald-500 text-white border-emerald-600' : 'bg-[#121212] border-white/5 text-neutral-400 hover:text-white hover:bg-white/5'}`}
+              title="Add New Connection"
+            >
+              <UserPlus className="w-4 h-4" />
+            </button>
           </div>
+
+          {/* Add Contact Inline Form */}
+          {showAddContact && (
+            <div className="mt-3 p-3 bg-white/5 border border-white/5 rounded-xl animate-in fade-in slide-in-from-top-2">
+              <form onSubmit={handleAddContact}>
+                <label className="block text-[10px] text-neutral-400 mb-1.5 uppercase tracking-wide font-bold">New Connection</label>
+                <div className="flex gap-2">
+                  <input 
+                    type="text"
+                    value={newContactId}
+                    onChange={(e) => setNewContactId(e.target.value)}
+                    placeholder="Enter Alias or ID"
+                    className="flex-1 bg-black/50 border border-white/10 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-500/50"
+                    autoFocus
+                  />
+                  <button 
+                    type="submit"
+                    disabled={!newContactId.trim()}
+                    className="p-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  >
+                    <Plus className="w-4 h-4" />
+                  </button>
+                </div>
+                <p className="text-[9px] text-neutral-600 mt-2">
+                  Initiating a handshake will generate a unique keypair for this contact.
+                </p>
+              </form>
+            </div>
+          )}
           
           <button 
             onClick={handleInvite}
